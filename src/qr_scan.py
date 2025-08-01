@@ -1,59 +1,80 @@
 import cv2 
 import matplotlib.pyplot as plt
 import pyzbar.pyzbar as pyzbar
+import webbrowser
 
-img = cv2.imread('../img/frame.png')
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#img = cv2.imread('../img/frame.png')
+#gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 cap = cv2.VideoCapture(0)
+scanned_data = set()
 
 while (cap.isOpened()):
-    ret , img = cap.read()
+    ret ,img = cap.read()
 
     if not ret:
         continue
 
-    img = cv2.imread('../img/frame.png')
-    gray = cv2.cvtColor(img, cv2.COLOR_BAYER_BG2BGR)
+    #img = cv2.imread('../img/frame.png')
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     decoded = pyzbar.decode(gray)
 
     for d in decoded:
-        x, y, w, h = d.rect
+        x, y, w, h = d.rect 
 
-        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-
-
-        print(d.data.decode('utf-8'))
         barcode_data = d.data.decode('utf-8')
-        print(d.type)
         barcode_type = d.type
+        #cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        
+        #print(d.data.decode('utf-8'))
+        #barcode_data = d.data.decode('utf-8')
+        #print(d.type)
+        #barcode_type = d.type
 
         text = '%s (%s)' % (barcode_data, barcode_type)
 
-    cv2.rectangle(img, (d.rect[0], d.rect[1]), (d.rect[0] + d.rect[2], d.rect[1] + d.rect[3]), (0, 255, 0 ), 20)
-    cv2.putText(img, text, (d.rect[0], d.rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
+        #cv2.rectangle(img, (d.rect[0], d.rect[1]), (d.rect[0] + d.rect[2], d.rect[1] + d.rect[3]), (0, 255, 0 ), 20)
+        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0 ), 2)
+        #cv2.putText(img, text, (d.rect[0], d.rect[1] - 50), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 2, cv2.LINE_AA )
+        cv2.putText(img, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 2, cv2.LINE_AA )
+    
+        if barcode_data not in scanned_data:
+            scanned_data.add(barcode_data)
+            if barcode_data.startswith("http"):
+                webbrowser.open(barcode_data)
+            try:
+                webbrowser.open(barcode_data)
+            except Exception as e:
+                print(f"웹브라우저 열기 실패: {e}")
 
+    cv2.imshow('camera', img)
 
+    key = cv2.waitKey(1)
+    if key == ord('q'):
+        break
+
+cap.release() 
+cv2.destroyAllWindows()
 #plt.imshow(img)
 #plt.imshow(gray, cmap='gray')
 #plt.show()
 
 # 디코딩 
-#decoded = pyzbar.decode(gray)
-#print(decoded)
+# decoded = pyzbar.decode(gray)
+# print(decoded)
 
-#for d in decoded:
-    #print(d.data.decode('utf-8'))
-    #barcode_data = d.data.decode('utf-8')
-    #print(d.type)
-    #barcode_type = d.type
+# for d in decoded:
+#     print(d.data.decode('utf-8'))
+#     barcode_data = d.data.decode('utf-8')
+#     print(d.type)
+#     barcode_type = d.type
 
-    #text = '%s (%s)' % (barcode_data, barcode_type)
+#     text = '%s (%s)' % (barcode_data, barcode_type)
 
-    #cv2.rectangle(img, (d.rect[0], d.rect[1]), (d.rect[0] + d.rect[2], d.rect[1] + d.rect[3]), (0, 255, 0 ), 20)
-    #cv2.putText(img, text, (d.rect[0], d.rect[3]), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 255), 2, cv2.LINE_AA)
+#     cv2.rectangle(img, (d.rect[0], d.rect[1]), (d.rect[0] + d.rect[2], d.rect[1] + d.rect[3]), (0, 255, 0 ), 20)
+#     cv2.putText(img, text, (d.rect[0], d.rect[1] - 50), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 255, 0), 2, cv2.LINE_AA )
 
-#plt.imshow(img)
-#plt.show()
+# plt.imshow(img)
+# plt.show()
 
 """
 img: 사각형을 그릴 이미지입니다.
@@ -64,5 +85,5 @@ thickness: 선택적으로 사각형의 선 두께를 지정합니다. 기본값
 lineType: 선택적으로 선의 형태를 지정합니다. 기본값은 cv2.LINE_8입니다.
 shift: 선택적으로 좌표값의 소수 부분을 비트 시프트할 양을 지정합니다.
 """
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
